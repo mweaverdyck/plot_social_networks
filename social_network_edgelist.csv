@@ -1,0 +1,17 @@
+node1,node2,weight
+Alice,Bob,0.51137193
+Alice,Dave,0.59824111
+Alice,Eve,1.74925055
+Judy,Faythe,1.43475145
+Alice,Grace,1.86381338
+Alice,Heidi,1.75614575
+Alice,Ivan,0.26253272
+Bob,Charlie,1.53168537
+Bob,Eve,1.75503297
+Charlie,Eve,1.31943344
+Grace,Heidi,1.19214872
+Grace,Ivan,1.1497345
+Grace,Judy,0.62144905
+Heidi,Ivan,1.22304798
+Heidi,Judy,0.36657185
+Ivan,Judy,0.15216689

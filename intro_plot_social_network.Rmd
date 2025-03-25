@@ -1,0 +1,276 @@
+---
+title: "Plot Social Networks"
+author: "Miriam Schwyck"
+date: "2025-03-25"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 6
+---
+
+```{r setup, include=FALSE}
+# set default options for cells
+knitr::opts_chunk$set(echo = TRUE)
+# set random seed
+set.seed(1234)
+
+# load igraph package, install if necessary
+if(!require(igraph)) install.packages("igraph")
+# alternatively, if you already have igraph installed, you can just load it
+library(igraph)
+```
+
+## Read in data
+
+Here, we assume that the data is stored in the same directory as this script.
+
+```{r read_data}
+# set your working directory - change this to wherever you saved this script and the data file(s)
+wd <- "./"
+
+# read in data in edge list form
+edgelist_data <- read.csv(paste0(wd,"social_network_edgelist.csv"))
+
+# look at data
+edgelist_data
+head(edgelist_data)
+View(edgelist_data)
+```
+
+## Make and view the network
+
+```{r}
+# make the graph object
+g <- graph_from_data_frame(edgelist_data, directed=FALSE)
+g
+```
+
+```{r}
+# plot the graph
+plot(g, main="Friendship Network")
+```
+
+```{r}
+# Get the adjacency matrix
+get.adjacency(g, sparse=FALSE)
+
+# Get the weighted adjacency matrix
+get.adjacency(g, attr="weight", sparse=FALSE)
+```
+
+
+### EXERCISE: Make a directed graph and plot it.
+
+Notice that when we created the graph object, we set the "directed" argument to False.
+To create a directed graph (i.e., one where Alice might like Bob but Bob might not like Alice),
+change that argument to True.
+```{r}
+# make a directed graph object and plot it here
+
+```
+
+
+## Vertices/Nodes
+
+```{r}
+# get the vertices/nodes/people
+V(g)
+```
+
+
+```{r}
+# get number of vertices (i.e., number of people in the network)
+n_vertices <- length(V(g))
+n_vertices
+```
+
+### Get/Set node attributes
+
+Attributes that are stored in the graph object
+```{r}
+# get the names of the people/nodes/vertices
+V(g)$name
+```
+
+Add attributes
+```{r}
+# add age to the graph object
+ages <- c(19, 20, 21, 22, 25, 30, 18, 19, 33, 28)
+V(g)$age <- ages
+print(V(g)$age)
+```
+
+Change plot to reflect age
+```{r}
+# "size" is a special attribute that plot() knows, so you can set it equal to any 
+# attribute to visualize that attribute in the plot
+V(g)$size <- V(g)$age
+# plot again
+plot(g)
+```
+
+#### EXERCISE: Add another node attribute (e.g., height) and plot the graph that reflects that attribute
+```{r}
+
+```
+
+
+### Calculate node-level social network measures
+
+#### Degree
+
+Degree is the number of edges a node has
+```{r}
+# get the number of friends each person has (i.e., degree)
+degree(g)
+hist(degree(g))
+```
+
+
+```{r}
+# change the size of the vertex based on that vertex's degree
+V(g)$size <- degree(g)*2 + 10
+plot(g)
+```
+
+In a directed graph, there are two types of degree: 
+in-degree (the number of ties pointing into a node)
+```{r}
+degree(g, mode="in")
+```
+out-degree (the number of ties pointing out of a node)
+```{r}
+degree(g, mode="out")
+```
+
+#### Strength
+Strength is the sum of the weighted edges connected to a node
+```{r}
+strength(g)
+```
+
+
+#### Eigenvector Centrality
+
+Eigenvector Centrality measures the extent to which a node is connected to other well-connected nodes.
+```{r}
+eigen_centrality(g)
+
+# notice that it's not just a list of values, so for this one, we have to select the "vector" variable
+evc <- eigen_centrality(g)$vector
+
+V(g)$size <- evc*20+10
+plot(g)
+```
+
+
+#### Brokerage
+
+Betweenness is the extent to which a node sits on the shortest path between two other nodes.
+In other words, how often do you have to go through that node to reach other nodes?
+```{r}
+betweenness(g)
+```
+
+Constraint is an inverse measure of brokerage. It reflects the extent to which a node is
+constrained to its local area.
+```{r}
+constraint(g)
+```
+
+##### EXERCISE: Change the node size of the plot to reflect betweenness? 
+```{r}
+
+```
+
+##### EXERCISE: Change the node size of the plot to reflect constraint? 
+```{r}
+
+```
+
+
+
+## Edges
+
+```{r}
+# get edges/ties/friendships
+E(g)
+```
+
+```{r}
+# print out each edge ID in a for-loop
+for (edge in E(g)) {
+  # get edge id
+  print(edge)
+  # get edge's vertices
+  print(E(g)[edge])
+}
+```
+
+### Get edge attributes
+
+```{r}
+E(g)$weight
+```
+
+
+Plot graph based on attributes
+
+```{r}
+# make ties in plot thicker based on how strong (either positive or negative) their relationship is
+E(g)$width <- abs(E(g)$weight)*5
+# plot with weight
+plot(g)
+```
+
+
+```{r}
+# add color attribute to each edge
+for (edge in E(g)) {
+  # get edge id
+  print(edge)
+  # get edge weight
+  edge_weight <- E(g)[edge]$weight
+  # determine if edge was positive or negative
+  # if positive, make the edge green
+  # if negative, make the edge red
+  if (edge_weight >= 1) {
+    edge_color <- "blue"
+  } else {
+    edge_color <- "darkred"
+  }
+  E(g)[edge]$color <- edge_color
+}
+# look at edge attributes
+E(g)$weight
+E(g)$color
+
+# plot with edge weight and color
+plot(g)
+```
+
+#### EXERCISE: Add another edge attribute and plot the graph that reflects that attribute
+```{r}
+
+```
+
+
+### Calculate other social network measures
+#### Triads
+```{r}
+# https://r.igraph.org/reference/triad_census.html
+triad_census(g) 
+triad_count_0 <- triad_census(g)[1]
+triad_count_1 <- triad_census(g)[3]
+triad_count_2 <- triad_census(g)[11]
+triad_count_3 <- triad_census(g)[16]
+# get the probability that adjacent vertices of a vertex are connected (i.e., if two nodes share a friend, are they also friends)
+transitivity(g)
+```
+
+#### Clustering
+```{r}
+com <- fastgreedy.community(g)
+mem <- membership(com)
+plot(com, g)
+```
